@@ -7,7 +7,7 @@ async function main() {
 
     const RegistryAddress = "0x193961D0c89a567ddc2Fa88623397e502e68c1C2";
     const ERC6551AccountAddress = "0x81f80919874Ad90D34E521f76D4F09D7C0Be138A";
-    const SubscriptionFactoryAddress = "0xcbfa52c1D7d8A5cD9664130187171d1E918C8765"; 
+    const SubscriptionFactoryAddress = "0x1C71b71FA012176aFe3847E1A2331FEdfF351C04"; 
 
     const Registry = await hre.ethers.getContractAt("ERC6551Registry", RegistryAddress);
     const ERC6551Account = await hre.ethers.getContractAt("ERC6551Account", ERC6551AccountAddress);
@@ -27,12 +27,6 @@ async function main() {
         "0x"  
     );
     console.log("TokenBoundAccount address:", newAccount);
- 
-
-    // const sendEth = await deployer.sendTransaction({
-    //     to: newAccount,
-    //     value: ethers.utils.parseEther("0.001")
-    // });
 
     const balance = await ethers.provider.getBalance(newAccount);
     console.log("TokenBoundAccount balance:", balance.toString());
