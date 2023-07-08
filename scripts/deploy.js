@@ -7,9 +7,11 @@ async function main() {
 
     const RegistryAddress = "0x193961D0c89a567ddc2Fa88623397e502e68c1C2";
     const ERC6551AccountAddress = "0x81f80919874Ad90D34E521f76D4F09D7C0Be138A";
+    const SubscriptionFactoryAddress = "0xcbfa52c1D7d8A5cD9664130187171d1E918C8765"; 
 
     const Registry = await hre.ethers.getContractAt("ERC6551Registry", RegistryAddress);
     const ERC6551Account = await hre.ethers.getContractAt("ERC6551Account", ERC6551AccountAddress);
+    const SubscriptionFactory = await hre.ethers.getContractAt("SubscriptionFactory", SubscriptionFactoryAddress);
 
     const NFTAddress = "0x2Fd5B9A60D80616F9Ea850dE5D170C3B92E5630b";
     const tokenId = 1; 
@@ -18,23 +20,27 @@ async function main() {
 
     const newAccount = await Registry.callStatic.createAccount(
         ERC6551Account.address, 
-        5, // Goerli chainId 
+        5, // Goerli  
         NFTAddress, 
-        tokenId, // token ID
+        tokenId,  
         1, // salt
-        "0x" // init calldata
+        "0x"  
     );
     console.log("TokenBoundAccount address:", newAccount);
+ 
 
-    console.log("Transferring 0.001 eth to TokenBoundAccount address");
-
-    const sendEth = await deployer.sendTransaction({
-        to: newAccount,
-        value: ethers.utils.parseEther("0.001")
-    });
+    // const sendEth = await deployer.sendTransaction({
+    //     to: newAccount,
+    //     value: ethers.utils.parseEther("0.001")
+    // });
 
     const balance = await ethers.provider.getBalance(newAccount);
-    console.log("TokenBoundAccount:", balance.toString());
+    console.log("TokenBoundAccount balance:", balance.toString());
+
+    console.log("Use ERC6551Account deploy subscription contract");
+
+    const subscriptionAddress = await SubscriptionFactory.callStatic.deploySubscriptionContract(newAccount);
+    console.log("Subscription contract address:", subscriptionAddress);
 }
 
 main().catch((error) => {
