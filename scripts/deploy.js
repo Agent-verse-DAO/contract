@@ -34,7 +34,7 @@ async function main() {
     });
 
     const balance = await ethers.provider.getBalance(newAccount);
-    console.log("TokenBoundAccount balance:", balance.toString());
+    console.log("TokenBoundAccount:", balance.toString());
 }
 
 main().catch((error) => {

@@ -1,0 +1,27 @@
+const hre = require("hardhat");
+require('dotenv').config();
+const { PRIVATE_KEY } = process.env;
+const { ethers } = hre;
+const goerliRPC = "https://goerli.blockpi.network/v1/rpc/public";
+const provider = new ethers.providers.JsonRpcProvider(goerliRPC);
+
+async function main() {
+    const deployPrivateKey = PRIVATE_KEY;
+    const deployWallet = new ethers.Wallet(deployPrivateKey, provider);
+
+    console.log("Deploying contracts with the account:", deployWallet.address);
+    const NFTFactory = await ethers.getContractFactory("NFTFactory");
+    const nftFactory = await NFTFactory.connect(deployWallet).deploy({ gasLimit: 5000000 });
+
+    await nftFactory.deployed();
+
+    console.log("NFTFactory deployed to:", nftFactory.address);
+
+}
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });

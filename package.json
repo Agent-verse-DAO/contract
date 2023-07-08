@@ -19,6 +19,7 @@
     "typechain": "^8.2.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.2"
+    "@openzeppelin/contracts": "^4.9.2",
+    "@unlock-protocol/contracts": "^0.0.22"
   }
 }
