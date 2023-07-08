@@ -3,11 +3,12 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SubscriptionContract is Ownable {
-    enum SubscriptionTier { Weekly, Monthly, Yearly }
+    enum SubscriptionTier { Free, Weekly, Monthly, Yearly }
 
     mapping(SubscriptionTier => uint256) public subscriptionPrices;
 
     mapping(address => Subscription) public subscriptions;
+    mapping(address => bool) public hasUsedFreeSubscription;
 
     struct Subscription {
         SubscriptionTier tier;
@@ -20,21 +21,34 @@ contract SubscriptionContract is Ownable {
     event GotSubscriptionExpiry(address indexed user, uint256 expiry);
 
     constructor() {
+        subscriptionPrices[SubscriptionTier.Free] = 0 ether;
         subscriptionPrices[SubscriptionTier.Weekly] = 0.01 ether;
         subscriptionPrices[SubscriptionTier.Monthly] = 0.03 ether;
         subscriptionPrices[SubscriptionTier.Yearly] = 0.05 ether;
     }
 
     function purchaseSubscription(SubscriptionTier tier) public payable {
-        require(msg.value >= subscriptionPrices[tier], "Insufficient payment amount");
 
         uint256 duration;
-        if (tier == SubscriptionTier.Weekly) {
+        if (tier == SubscriptionTier.Free) {
+            require(!hasUsedFreeSubscription[msg.sender], "You have already used a free subscription.");
+            hasUsedFreeSubscription[msg.sender] = true;
             duration = 7 days;
-        } else if (tier == SubscriptionTier.Monthly) {
-            duration = 30 days;
-        } else if (tier == SubscriptionTier.Yearly) {
-            duration = 365 days;
+        } else {
+            require(msg.value >= subscriptionPrices[tier], "Insufficient payment amount");
+
+            if (tier == SubscriptionTier.Weekly) {
+                duration = 7 days;
+            } else if (tier == SubscriptionTier.Monthly) {
+                duration = 30 days;
+            } else if (tier == SubscriptionTier.Yearly) {
+                duration = 365 days;
+            }
+
+            uint256 refund = msg.value - subscriptionPrices[tier];
+            if(refund > 0) {
+                payable(msg.sender).transfer(refund);
+            }
         }
 
         Subscription storage subscription = subscriptions[msg.sender];
@@ -44,12 +58,6 @@ contract SubscriptionContract is Ownable {
         } else {
             subscription.expiry += duration;
         }
-
-        uint256 refund = msg.value - subscriptionPrices[tier];
-        if(refund > 0) {
-            payable(msg.sender).transfer(refund);
-        }
-        
 
         emit SubscriptionPurchased(msg.sender, tier, subscription.expiry);
     }
