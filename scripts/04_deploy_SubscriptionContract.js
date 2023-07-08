@@ -347,7 +347,7 @@ const subscriptionAbi = [
   ];
 
 
-const factoryAddress = '0xcbfa52c1D7d8A5cD9664130187171d1E918C8765';
+const factoryAddress = '0xEefC49E338857E02517d7dbff937b5A5d5F8F204';
 const provider = ethers.getDefaultProvider('goerli');
 const deployPrivateKey = PRIVATE_KEY; 
 const wallet = new ethers.Wallet(deployPrivateKey, provider);
@@ -363,32 +363,29 @@ async function main() {
 
     const subscription = new ethers.Contract(subscriptionAddress, subscriptionAbi, wallet);
 
-    const priceWeekly = ethers.utils.parseEther('0.01');
-    const priceMonthly = ethers.utils.parseEther('0.03');
     const priceYearly = ethers.utils.parseEther('0.05');
-
-    const weeklyTx = await subscription.purchaseSubscription(0, { value: priceWeekly });
-    const weeklyReceipt = await weeklyTx.wait();
-    const weeklyEvent = weeklyReceipt.events.find(e => e.event === 'SubscriptionPurchased');
-    console.log('Weekly subscription purchased with expiry', weeklyEvent.args.expiry.toString());
-
-    const monthlyTx = await subscription.purchaseSubscription(1, { value: priceMonthly });
-    await monthlyTx.wait();
 
     const yearlyTx = await subscription.purchaseSubscription(2, { value: priceYearly });
     await yearlyTx.wait();
 
     const isActive = await subscription.checkSubscription(wallet.address);
-    console.log('Is subscription active?', isActive);
+    console.log('is subscription active?', isActive);
 
     if (isActive) {
         const tier = await subscription.getSubscriptionTier(wallet.address);
-        const expiry = new Date((await subscription.getSubscriptionExpiry(wallet.address)).toString() * 1000);
-        console.log(`Subscription tier: ${tier.toString()}, expiry date: ${expiry.toISOString()}`);
+        const expiryTimestamp = await subscription.getSubscriptionExpiry(wallet.address);
+        const expiry = expiryTimestamp.toNumber() * 1000;
+        
+        // Check if expiry is a valid date
+        if (!isNaN(expiry)) {
+            const expiryDate = new Date(expiry);
+            console.log(`subscription tier: ${tier.toString()}, expiry date: ${expiryDate.toISOString()}`);
+        } else {
+            console.error('Error: Invalid expiry date');
+        }
     } else {
-        console.log('No active subscription for this address.');
+        console.log('no active subscription');
     }
-
 }
 
 main().catch(console.error);
